@@ -1,4 +1,4 @@
-import React, { FC } from "react";
+import React, { FC, useEffect } from "react";
 
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
@@ -15,6 +15,9 @@ const useStyles = makeStyles((theme: Theme) =>
       padding: theme.spacing(2),
       marginTop: theme.spacing(2),
       marginBottom: theme.spacing(2),
+    },
+    center: {
+      textAlign: "center",
     },
     flex: {
       display: "flex",
@@ -38,6 +41,10 @@ const useStyles = makeStyles((theme: Theme) =>
 const Game: FC = () => {
   const classes = useStyles();
   const game = useGameStore();
+
+  useEffect(() => {
+    game.newGame();
+  }, []);
 
   return (
     <div>
@@ -71,7 +78,9 @@ const Game: FC = () => {
         ))}
       </div>
 
-      <Paper className={classes.paper}>
+      <Paper className={clsx(classes.paper, classes.center)}>
+        {game.gameResult === "" && <Typography>Good luck!</Typography>}
+
         {game.isOver && game.gameResult === "WIN" && (
           <Typography>You win!</Typography>
         )}
@@ -90,8 +99,10 @@ const Game: FC = () => {
 
         <div className={classes.buttonContainer}>
           <Button
+            size="large"
+            fullWidth
             color="primary"
-            variant="outlined"
+            variant="contained"
             onClick={() => {
               game.hitPlayer();
             }}
@@ -101,8 +112,10 @@ const Game: FC = () => {
           </Button>
 
           <Button
-            color="primary"
-            variant="outlined"
+            size="large"
+            fullWidth
+            color="secondary"
+            variant="contained"
             onClick={() => {
               game.playerStand();
             }}
@@ -114,11 +127,14 @@ const Game: FC = () => {
 
         <div className={classes.buttonContainer}>
           <Button
+            size="large"
+            fullWidth
             color="primary"
-            variant="outlined"
+            variant="contained"
             onClick={() => {
               game.newGame();
             }}
+            disabled={game.isThinking}
           >
             New Game
           </Button>
