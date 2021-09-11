@@ -75,7 +75,7 @@ const Game: FC = () => {
         <div className={classes.buttonContainer}>
           <Button
             color="primary"
-            variant="contained"
+            variant="outlined"
             onClick={() => {
               game.hitPlayer();
             }}
@@ -86,7 +86,7 @@ const Game: FC = () => {
 
           <Button
             color="primary"
-            variant="contained"
+            variant="outlined"
             onClick={() => {
               game.playerStand();
             }}
@@ -99,7 +99,7 @@ const Game: FC = () => {
         <div className={classes.buttonContainer}>
           <Button
             color="primary"
-            variant="contained"
+            variant="outlined"
             onClick={() => {
               game.newGame();
             }}

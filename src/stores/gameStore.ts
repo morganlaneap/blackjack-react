@@ -4,6 +4,8 @@ import { configurePersist } from "zustand-persist";
 import { ICard, IHand } from "types/Cards";
 const cardData: ICard[] = require("staticData/cards.json");
 
+const synth = window.speechSynthesis;
+
 const { persist, purge } = configurePersist({
   storage: sessionStorage,
   rootKey: "root",
@@ -83,6 +85,7 @@ export const useGameStore = create<IGameStore>(
           cards: newCards,
           total: calculateTotal(newCards),
         };
+        synth.speak(new SpeechSynthesisUtterance(newHand.total.toString()));
         set({
           deck: deck,
           playerHand: newHand,
@@ -106,12 +109,20 @@ export const useGameStore = create<IGameStore>(
             dealerHand: dealerHand,
           });
 
+          const win =
+            playerHand.total <= 21 && playerHand.total > dealerHand.total;
+
           set({
             isThinking: false,
             isOver: true,
-            playerWin:
-              playerHand.total <= 21 && playerHand.total > dealerHand.total,
+            playerWin: win,
           });
+
+          if (win) {
+            synth.speak(new SpeechSynthesisUtterance("Player wins!"));
+          } else {
+            synth.speak(new SpeechSynthesisUtterance("Dealer wins."));
+          }
         });
       },
       hitDealer: () => {
