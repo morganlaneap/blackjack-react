@@ -10,7 +10,7 @@ const { persist, purge } = configurePersist({
 });
 
 interface IGameStore {
-  reset: () => void;
+  newGame: () => void;
   deck: ICard[];
   playerHand: IHand;
   dealerHand: IHand;
@@ -18,7 +18,7 @@ interface IGameStore {
   hitDealer: () => void;
 }
 
-const shuffleArray = (array: ICard[]) => {
+const shuffle = (array: ICard[]) => {
   let newArr = [...array];
   for (let i = newArr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -27,20 +27,22 @@ const shuffleArray = (array: ICard[]) => {
   return newArr;
 };
 
-const calculateCardsTotal = (cards: ICard[]) => {
+const calculateTotal = (cards: ICard[]) => {
   let total: number = 0;
   for (let i = 0; i < cards.length; i++) {
     const card = cards[i];
-    switch (card.value) {
-      case "A":
-      case "J":
-      case "Q":
-      case "K":
-        total += 10;
-        break;
-      default:
-        total += Number.parseInt(card.value);
-        break;
+    if (!card.hidden) {
+      switch (card.value) {
+        case "A":
+        case "J":
+        case "Q":
+        case "K":
+          total += 10;
+          break;
+        default:
+          total += Number.parseInt(card.value);
+          break;
+      }
     }
   }
   return total;
@@ -62,8 +64,7 @@ export const useGameStore = create<IGameStore>(
         total: 0,
       },
       hitPlayer: () => {
-        const deck = get().deck;
-        console.log(deck);
+        const deck = [...get().deck];
         const playerHand = get().playerHand;
         const nextCard = deck.pop();
         const newCards = [...playerHand.cards, nextCard!];
@@ -71,12 +72,12 @@ export const useGameStore = create<IGameStore>(
           deck: deck,
           playerHand: {
             cards: newCards,
-            total: calculateCardsTotal(newCards),
+            total: calculateTotal(newCards),
           },
         });
       },
       hitDealer: () => {
-        const deck = get().deck;
+        const deck = [...get().deck];
         const dealerHand = get().dealerHand;
         const nextCard = deck.pop();
         const newCards = [...dealerHand.cards, nextCard!];
@@ -84,28 +85,38 @@ export const useGameStore = create<IGameStore>(
           deck: deck,
           dealerHand: {
             cards: newCards,
-            total: calculateCardsTotal(newCards),
+            total: calculateTotal(newCards),
           },
         });
       },
-      reset: () => {
+      newGame: () => {
         purge();
+
+        // Shuffle deck
+        const shuffledDeck = shuffle(get().deck);
+
+        // Deal new cards
+        const playerCards = [shuffledDeck[0], shuffledDeck[2]];
+        const dealerCards = [
+          shuffledDeck[1],
+          { ...shuffledDeck[3], hidden: true },
+        ];
+
+        // Remove the top 4 cards
+        shuffledDeck.splice(0, 4);
+
+        // Update state
         set({
-          deck: shuffleArray(get().deck),
+          deck: shuffledDeck,
           playerHand: {
-            cards: [],
-            total: 0,
+            cards: playerCards,
+            total: calculateTotal(playerCards),
           },
           dealerHand: {
-            cards: [],
-            total: 0,
+            cards: dealerCards,
+            total: calculateTotal(dealerCards),
           },
         });
-
-        get().hitPlayer();
-        get().hitDealer();
-        get().hitPlayer();
-        get().hitDealer();
       },
     })
   )

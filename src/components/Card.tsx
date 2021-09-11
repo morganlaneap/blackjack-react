@@ -6,6 +6,7 @@ import CardContent from "@material-ui/core/CardContent";
 import Typography from "@material-ui/core/Typography";
 
 import { ICard } from "types/Cards";
+import clsx from "clsx";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -34,6 +35,14 @@ const useStyles = makeStyles((theme: Theme) =>
       color: "black",
       fontSize: "24px",
     },
+    hidden: {
+      backgroundImage: "url('images/card-back.png')",
+      border: "4px solid white",
+      boxSizing: "border-box",
+    },
+    none: {
+      display: "none",
+    },
   })
 );
 
@@ -57,8 +66,14 @@ const Card: FC<{
 
   return (
     <div className={classes.container}>
-      <MuiCard className={classes.card}>
-        <CardContent className={classes.cardContent}>
+      <MuiCard
+        className={
+          card.hidden ? clsx(classes.card, classes.hidden) : classes.card
+        }
+      >
+        <CardContent
+          className={card.hidden ? classes.none : classes.cardContent}
+        >
           <Typography className={classes.valueText}>{card.value}</Typography>
           {getSuitIcon(card.suit)}
         </CardContent>

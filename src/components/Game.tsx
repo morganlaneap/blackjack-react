@@ -34,7 +34,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const Game: FC = () => {
   const classes = useStyles();
-  const store = useGameStore();
+  const game = useGameStore();
 
   return (
     <div>
@@ -42,11 +42,11 @@ const Game: FC = () => {
         <Typography className={classes.title} variant="h5">
           Dealer
         </Typography>
-        <Typography variant="h5">{store.dealerHand.total}</Typography>
+        <Typography variant="h5">{game.dealerHand.total}</Typography>
       </Paper>
 
       <div className={classes.cardContainer}>
-        {store.dealerHand.cards.map((c, i) => (
+        {game.dealerHand.cards.map((c, i) => (
           <Card card={c} key={i} />
         ))}
       </div>
@@ -55,11 +55,11 @@ const Game: FC = () => {
         <Typography className={classes.title} variant="h5">
           You
         </Typography>
-        <Typography variant="h5">{store.playerHand.total}</Typography>
+        <Typography variant="h5">{game.playerHand.total}</Typography>
       </Paper>
 
       <div className={classes.cardContainer}>
-        {store.playerHand.cards.map((c, i) => (
+        {game.playerHand.cards.map((c, i) => (
           <Card card={c} key={i} />
         ))}
       </div>
@@ -70,7 +70,7 @@ const Game: FC = () => {
             color="primary"
             variant="contained"
             onClick={() => {
-              store.hitPlayer();
+              game.hitPlayer();
             }}
           >
             Hit
@@ -80,7 +80,7 @@ const Game: FC = () => {
             color="primary"
             variant="contained"
             onClick={() => {
-              store.hitPlayer();
+              game.hitPlayer();
             }}
           >
             Stand
@@ -92,7 +92,7 @@ const Game: FC = () => {
             color="primary"
             variant="contained"
             onClick={() => {
-              store.reset();
+              game.newGame();
             }}
           >
             New Game
