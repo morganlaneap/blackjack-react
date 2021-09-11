@@ -11,10 +11,14 @@ const { persist, purge } = configurePersist({
 
 interface IGameStore {
   newGame: () => void;
+  isThinking: boolean;
+  isOver: boolean;
+  playerWin: boolean;
   deck: ICard[];
   playerHand: IHand;
   dealerHand: IHand;
   hitPlayer: () => void;
+  playerStand: () => void;
   hitDealer: () => void;
 }
 
@@ -48,6 +52,10 @@ const calculateTotal = (cards: ICard[]) => {
   return total;
 };
 
+const delay = (action: () => any) => {
+  setTimeout(action, 1000);
+};
+
 export const useGameStore = create<IGameStore>(
   persist(
     {
@@ -55,6 +63,9 @@ export const useGameStore = create<IGameStore>(
     },
     (set, get) => ({
       deck: cardData,
+      isThinking: false,
+      isOver: false,
+      playerWin: false,
       playerHand: {
         cards: [],
         total: 0,
@@ -68,12 +79,39 @@ export const useGameStore = create<IGameStore>(
         const playerHand = get().playerHand;
         const nextCard = deck.pop();
         const newCards = [...playerHand.cards, nextCard!];
+        const newHand = {
+          cards: newCards,
+          total: calculateTotal(newCards),
+        };
         set({
           deck: deck,
-          playerHand: {
-            cards: newCards,
-            total: calculateTotal(newCards),
-          },
+          playerHand: newHand,
+          isOver: newHand.total > 21,
+        });
+      },
+      playerStand: () => {
+        set({ isThinking: true });
+
+        // Reveal dealers card
+        delay(() => {
+          const dealerHand = get().dealerHand;
+          const playerHand = get().playerHand;
+
+          dealerHand.cards = [
+            { ...dealerHand.cards[0] },
+            { ...dealerHand.cards[1], hidden: false },
+          ];
+          dealerHand.total = calculateTotal(dealerHand.cards);
+          set({
+            dealerHand: dealerHand,
+          });
+
+          set({
+            isThinking: false,
+            isOver: true,
+            playerWin:
+              playerHand.total <= 21 && playerHand.total > dealerHand.total,
+          });
         });
       },
       hitDealer: () => {
@@ -108,6 +146,9 @@ export const useGameStore = create<IGameStore>(
         // Update state
         set({
           deck: shuffledDeck,
+          isThinking: false,
+          isOver: false,
+          playerWin: false,
           playerHand: {
             cards: playerCards,
             total: calculateTotal(playerCards),

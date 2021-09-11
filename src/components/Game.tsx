@@ -7,14 +7,17 @@ import Button from "@material-ui/core/Button";
 
 import Card from "components/Card";
 import { useGameStore } from "stores/gameStore";
+import clsx from "clsx";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     paper: {
-      display: "flex",
       padding: theme.spacing(2),
       marginTop: theme.spacing(2),
       marginBottom: theme.spacing(2),
+    },
+    flex: {
+      display: "flex",
     },
     title: {
       flexGrow: 1,
@@ -38,7 +41,7 @@ const Game: FC = () => {
 
   return (
     <div>
-      <Paper className={classes.paper}>
+      <Paper className={clsx(classes.paper, classes.flex)}>
         <Typography className={classes.title} variant="h5">
           Dealer
         </Typography>
@@ -51,7 +54,7 @@ const Game: FC = () => {
         ))}
       </div>
 
-      <Paper className={classes.paper}>
+      <Paper className={clsx(classes.paper, classes.flex)}>
         <Typography className={classes.title} variant="h5">
           You
         </Typography>
@@ -65,6 +68,10 @@ const Game: FC = () => {
       </div>
 
       <Paper className={classes.paper}>
+        {game.isOver && game.playerWin && <Typography>You win!</Typography>}
+
+        {game.isOver && !game.playerWin && <Typography>You lose!</Typography>}
+
         <div className={classes.buttonContainer}>
           <Button
             color="primary"
@@ -72,6 +79,7 @@ const Game: FC = () => {
             onClick={() => {
               game.hitPlayer();
             }}
+            disabled={game.isThinking || game.isOver}
           >
             Hit
           </Button>
@@ -80,8 +88,9 @@ const Game: FC = () => {
             color="primary"
             variant="contained"
             onClick={() => {
-              game.hitPlayer();
+              game.playerStand();
             }}
+            disabled={game.isThinking || game.isOver}
           >
             Stand
           </Button>
@@ -94,6 +103,7 @@ const Game: FC = () => {
             onClick={() => {
               game.newGame();
             }}
+            disabled={game.isThinking}
           >
             New Game
           </Button>
