@@ -6,12 +6,15 @@ const cardData: ICard[] = require("staticData/cards.json");
 
 const synth = window.speechSynthesis;
 
+const bet = 10;
+
 const { persist, purge } = configurePersist({
-  storage: sessionStorage,
+  storage: localStorage,
   rootKey: "root",
 });
 
 interface IGameStore {
+  reset: () => void;
   newGame: () => void;
   isThinking: boolean;
   isOver: boolean;
@@ -19,6 +22,7 @@ interface IGameStore {
   deck: ICard[];
   playerHand: IHand;
   dealerHand: IHand;
+  balance: number;
   hitPlayer: () => void;
   playerStand: () => void;
 }
@@ -73,6 +77,7 @@ export const useGameStore = create<IGameStore>(
         cards: [],
         total: 0,
       },
+      balance: 1000,
       hitPlayer: () => {
         const deck = [...get().deck];
         const playerHand = get().playerHand;
@@ -118,25 +123,30 @@ export const useGameStore = create<IGameStore>(
             const push = playerHand.total === dealerHand.total;
             const gameResult = win ? "WIN" : push ? "PUSH" : "LOSE";
 
-            set({
-              isThinking: false,
-              isOver: true,
-              gameResult: gameResult,
-            });
+            let balance = get().balance;
 
             if (gameResult === "WIN") {
               synth.speak(new SpeechSynthesisUtterance("Player wins!"));
+              balance = balance + 2 * bet;
             } else if (gameResult === "PUSH") {
               synth.speak(new SpeechSynthesisUtterance("Push!"));
+              balance = balance + bet;
             } else {
               synth.speak(new SpeechSynthesisUtterance("Dealer wins."));
             }
+
+            set({
+              isThinking: false,
+              balance: balance,
+              isOver: true,
+              gameResult: gameResult,
+            });
           }
         });
       },
       newGame: () => {
-        purge();
         let gameResult = "";
+        let balance = get().balance;
 
         // Shuffle deck
         const shuffledDeck = shuffle(get().deck);
@@ -153,12 +163,19 @@ export const useGameStore = create<IGameStore>(
           (playerCards[0].value === "A" && playerCards[1].value === "J")
         ) {
           gameResult = "BLACKJACK";
+          balance = balance + 1.5 * bet;
           synth.speak(new SpeechSynthesisUtterance("Blackjack!"));
+        } else {
+          synth.speak(
+            new SpeechSynthesisUtterance(calculateTotal(playerCards).toString())
+          );
+          balance = balance - bet;
         }
 
         // Update state
         set({
           deck: shuffledDeck,
+          balance: balance,
           isThinking: false,
           isOver: gameResult !== "",
           gameResult: gameResult,
@@ -170,6 +187,24 @@ export const useGameStore = create<IGameStore>(
             cards: dealerCards,
             total: calculateTotal(dealerCards),
           },
+        });
+      },
+      reset: () => {
+        purge();
+        set({
+          deck: cardData,
+          isThinking: false,
+          isOver: false,
+          gameResult: "",
+          playerHand: {
+            cards: [],
+            total: 0,
+          },
+          dealerHand: {
+            cards: [],
+            total: 0,
+          },
+          balance: 1000,
         });
       },
     })

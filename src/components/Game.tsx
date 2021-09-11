@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from "react";
+import React, { FC } from "react";
 
 import { createStyles, makeStyles, Theme } from "@material-ui/core/styles";
 import Typography from "@material-ui/core/Typography";
@@ -42,11 +42,6 @@ const Game: FC = () => {
   const classes = useStyles();
   const game = useGameStore();
 
-  useEffect(() => {
-    game.newGame();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <div>
       <Paper className={clsx(classes.paper)}>
@@ -80,6 +75,9 @@ const Game: FC = () => {
           For legal reasons, this is not a gambling site, you cannot win any
           money. So have fun and spend all your imaginary money!
         </Typography>
+        <br />
+
+        <Typography>Press 'New Game' to get started.</Typography>
       </Paper>
 
       <Paper className={clsx(classes.paper, classes.flex)}>
@@ -130,6 +128,10 @@ const Game: FC = () => {
         {game.isOver && game.gameResult === "BLACKJACK" && (
           <Typography>Blackjack! 💲</Typography>
         )}
+      </Paper>
+
+      <Paper className={clsx(classes.paper, classes.center)}>
+        <Typography>Balance: &pound;{game.balance.toFixed(2)}</Typography>
 
         <div className={classes.buttonContainer}>
           <Button
@@ -140,7 +142,11 @@ const Game: FC = () => {
             onClick={() => {
               game.hitPlayer();
             }}
-            disabled={game.isThinking || game.isOver}
+            disabled={
+              game.isThinking ||
+              game.isOver ||
+              game.playerHand.cards.length === 0
+            }
           >
             Hit
           </Button>
@@ -153,7 +159,11 @@ const Game: FC = () => {
             onClick={() => {
               game.playerStand();
             }}
-            disabled={game.isThinking || game.isOver}
+            disabled={
+              game.isThinking ||
+              game.isOver ||
+              game.playerHand.cards.length === 0
+            }
           >
             Stand
           </Button>
@@ -171,6 +181,23 @@ const Game: FC = () => {
             disabled={game.isThinking}
           >
             New Game
+          </Button>
+        </div>
+
+        <div className={classes.buttonContainer}>
+          <Button
+            size="small"
+            fullWidth
+            color="primary"
+            variant="outlined"
+            onClick={() => {
+              // eslint-disable-next-line no-restricted-globals
+              if (confirm("Are you sure you want to do this?")) {
+                game.reset();
+              }
+            }}
+          >
+            Reset Progress
           </Button>
         </div>
       </Paper>
