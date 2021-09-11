@@ -5,37 +5,35 @@ import Typography from "@material-ui/core/Typography";
 
 import { ICard } from "types/Cards";
 import Card from "components/Card";
-
-const cardData: ICard[] = require("staticData/cards.json");
+import { useGameStore } from "stores/gameStore";
 
 const useStyles = makeStyles((theme: Theme) => createStyles({}));
 
 const Game: FC = () => {
   const classes = useStyles();
-
-  const [cards, setCards] = useState<ICard[]>(cardData);
-
-  const shuffleArray = (array: ICard[]) => {
-    let newArr = [...array];
-    for (let i = newArr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
-    }
-    setCards(newArr);
-  };
+  const store = useGameStore();
 
   return (
     <div>
-      {cards.map((c, i) => (
+      {store.playerHand.cards.map((c, i) => (
         <Card card={c} key={i} />
       ))}
+      <Typography>{store.playerHand.total}</Typography>
 
       <button
         onClick={() => {
-          shuffleArray(cards);
+          store.reset();
         }}
       >
-        Shuffle
+        New Game
+      </button>
+
+      <button
+        onClick={() => {
+          store.hitPlayer();
+        }}
+      >
+        Hit Player
       </button>
     </div>
   );
