@@ -10,7 +10,7 @@ const App = () => {
     <div>
       <Navbar />
 
-      <Container maxWidth="lg">
+      <Container maxWidth="sm">
         <Game />
       </Container>
     </div>

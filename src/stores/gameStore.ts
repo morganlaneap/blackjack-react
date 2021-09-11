@@ -63,6 +63,7 @@ export const useGameStore = create<IGameStore>(
       },
       hitPlayer: () => {
         const deck = get().deck;
+        console.log(deck);
         const playerHand = get().playerHand;
         const nextCard = deck.pop();
         const newCards = [...playerHand.cards, nextCard!];
@@ -100,6 +101,11 @@ export const useGameStore = create<IGameStore>(
             total: 0,
           },
         });
+
+        get().hitPlayer();
+        get().hitDealer();
+        get().hitPlayer();
+        get().hitDealer();
       },
     })
   )
