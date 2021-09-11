@@ -52,6 +52,10 @@ const Game: FC = () => {
         {game.dealerHand.cards.map((c, i) => (
           <Card card={c} key={i} />
         ))}
+
+        {game.dealerHand.cards.length === 1 && (
+          <Card card={{ suit: "", value: "", hidden: true }} />
+        )}
       </div>
 
       <Paper className={clsx(classes.paper, classes.flex)}>
@@ -68,9 +72,21 @@ const Game: FC = () => {
       </div>
 
       <Paper className={classes.paper}>
-        {game.isOver && game.playerWin && <Typography>You win!</Typography>}
+        {game.isOver && game.gameResult === "WIN" && (
+          <Typography>You win!</Typography>
+        )}
 
-        {game.isOver && !game.playerWin && <Typography>You lose!</Typography>}
+        {game.isOver && game.gameResult === "LOSE" && (
+          <Typography>You lose!</Typography>
+        )}
+
+        {game.isOver && game.gameResult === "PUSH" && (
+          <Typography>Push!</Typography>
+        )}
+
+        {game.isOver && game.gameResult === "BLACKJACK" && (
+          <Typography>Blackjack!</Typography>
+        )}
 
         <div className={classes.buttonContainer}>
           <Button
@@ -103,7 +119,6 @@ const Game: FC = () => {
             onClick={() => {
               game.newGame();
             }}
-            disabled={game.isThinking}
           >
             New Game
           </Button>

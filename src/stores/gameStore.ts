@@ -15,13 +15,12 @@ interface IGameStore {
   newGame: () => void;
   isThinking: boolean;
   isOver: boolean;
-  playerWin: boolean;
+  gameResult: string;
   deck: ICard[];
   playerHand: IHand;
   dealerHand: IHand;
   hitPlayer: () => void;
   playerStand: () => void;
-  hitDealer: () => void;
 }
 
 const shuffle = (array: ICard[]) => {
@@ -37,18 +36,16 @@ const calculateTotal = (cards: ICard[]) => {
   let total: number = 0;
   for (let i = 0; i < cards.length; i++) {
     const card = cards[i];
-    if (!card.hidden) {
-      switch (card.value) {
-        case "A":
-        case "J":
-        case "Q":
-        case "K":
-          total += 10;
-          break;
-        default:
-          total += Number.parseInt(card.value);
-          break;
-      }
+    switch (card.value) {
+      case "A":
+      case "J":
+      case "Q":
+      case "K":
+        total += 10;
+        break;
+      default:
+        total += Number.parseInt(card.value);
+        break;
     }
   }
   return total;
@@ -67,7 +64,7 @@ export const useGameStore = create<IGameStore>(
       deck: cardData,
       isThinking: false,
       isOver: false,
-      playerWin: false,
+      gameResult: "",
       playerHand: {
         cards: [],
         total: 0,
@@ -90,6 +87,7 @@ export const useGameStore = create<IGameStore>(
           deck: deck,
           playerHand: newHand,
           isOver: newHand.total > 21,
+          gameResult: newHand.total > 21 ? "LOSE" : "",
         });
       },
       playerStand: () => {
@@ -97,69 +95,73 @@ export const useGameStore = create<IGameStore>(
 
         // Reveal dealers card
         delay(() => {
+          const deck = [...get().deck];
+          const nextCard = deck.pop();
+
           const dealerHand = get().dealerHand;
           const playerHand = get().playerHand;
 
-          dealerHand.cards = [
-            { ...dealerHand.cards[0] },
-            { ...dealerHand.cards[1], hidden: false },
-          ];
+          dealerHand.cards = [...dealerHand.cards, nextCard!];
           dealerHand.total = calculateTotal(dealerHand.cards);
+
           set({
             dealerHand: dealerHand,
+            deck: deck,
           });
 
-          const win =
-            playerHand.total <= 21 && playerHand.total > dealerHand.total;
-
-          set({
-            isThinking: false,
-            isOver: true,
-            playerWin: win,
-          });
-
-          if (win) {
-            synth.speak(new SpeechSynthesisUtterance("Player wins!"));
+          if (dealerHand.total < 16) {
+            get().playerStand();
           } else {
-            synth.speak(new SpeechSynthesisUtterance("Dealer wins."));
+            const win =
+              (playerHand.total <= 21 && playerHand.total > dealerHand.total) ||
+              dealerHand.total > 21;
+            const push = playerHand.total === dealerHand.total;
+            const gameResult = win ? "WIN" : push ? "PUSH" : "LOSE";
+
+            set({
+              isThinking: false,
+              isOver: true,
+              gameResult: gameResult,
+            });
+
+            if (gameResult === "WIN") {
+              synth.speak(new SpeechSynthesisUtterance("Player wins!"));
+            } else if (gameResult === "PUSH") {
+              synth.speak(new SpeechSynthesisUtterance("Push!"));
+            } else {
+              synth.speak(new SpeechSynthesisUtterance("Dealer wins."));
+            }
           }
-        });
-      },
-      hitDealer: () => {
-        const deck = [...get().deck];
-        const dealerHand = get().dealerHand;
-        const nextCard = deck.pop();
-        const newCards = [...dealerHand.cards, nextCard!];
-        set({
-          deck: deck,
-          dealerHand: {
-            cards: newCards,
-            total: calculateTotal(newCards),
-          },
         });
       },
       newGame: () => {
         purge();
+        let gameResult = "";
 
         // Shuffle deck
         const shuffledDeck = shuffle(get().deck);
 
         // Deal new cards
         const playerCards = [shuffledDeck[0], shuffledDeck[2]];
-        const dealerCards = [
-          shuffledDeck[1],
-          { ...shuffledDeck[3], hidden: true },
-        ];
+        const dealerCards = [shuffledDeck[1]];
 
         // Remove the top 4 cards
-        shuffledDeck.splice(0, 4);
+        shuffledDeck.splice(0, 3);
+
+        if (
+          (playerCards[0].value === "J" && playerCards[1].value === "A") ||
+          (playerCards[0].value === "A" && playerCards[1].value === "J")
+        ) {
+          gameResult = "BLACKJACK";
+          synth.speak(new SpeechSynthesisUtterance("Blackjack!"));
+        }
 
         // Update state
         set({
           deck: shuffledDeck,
           isThinking: false,
-          isOver: false,
-          playerWin: false,
+          isOver: gameResult !== "",
+          gameResult: gameResult,
           playerHand: {
             cards: playerCards,
             total: calculateTotal(playerCards),
