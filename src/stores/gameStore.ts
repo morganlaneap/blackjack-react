@@ -1,7 +1,7 @@
 import create from "zustand";
 import { configurePersist } from "zustand-persist";
 
-import { ICard, IHand } from "types/Cards";
+import { ICard, IGame, IHand } from "types/Cards";
 const cardData: ICard[] = require("staticData/cards.json");
 
 const synth = window.speechSynthesis;
@@ -22,6 +22,7 @@ interface IGameStore {
   playerHand: IHand;
   dealerHand: IHand;
   balance: number;
+  gameHistory: IGame[];
   hitPlayer: () => void;
   playerStand: () => void;
   changeBet: (by: number) => void;
@@ -82,6 +83,7 @@ export const useGameStore = create<IGameStore>(
         total: 0,
       },
       balance: 1000,
+      gameHistory: [],
       hitPlayer: () => {
         const deck = [...get().deck];
         const playerHand = get().playerHand;
@@ -129,6 +131,7 @@ export const useGameStore = create<IGameStore>(
             const gameResult = win ? "WIN" : push ? "PUSH" : "LOSE";
 
             let balance = get().balance;
+            const originalBalance = balance;
 
             if (gameResult === "WIN") {
               synth.speak(new SpeechSynthesisUtterance("Player wins!"));
@@ -145,6 +148,17 @@ export const useGameStore = create<IGameStore>(
               balance: balance,
               isOver: true,
               gameResult: gameResult,
+              gameHistory: [
+                ...get().gameHistory,
+                {
+                  result: gameResult,
+                  dealerTotal: dealerHand.total,
+                  playerTotal: playerHand.total,
+                  balanceAfter: balance,
+                  balanceBefore: originalBalance,
+                  bet: bet,
+                },
+              ],
             });
           }
         });
@@ -212,6 +226,7 @@ export const useGameStore = create<IGameStore>(
             total: 0,
           },
           balance: 1000,
+          gameHistory: [],
         });
       },
     })
