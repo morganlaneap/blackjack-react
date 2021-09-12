@@ -32,7 +32,11 @@ const App = () => {
   const classes = useStyles();
   return (
     <div>
-      <img className={classes.logo} src="images/logo.png" alt="logo" />
+      <img
+        className={classes.logo}
+        src="/blackjack/images/logo.png"
+        alt="logo"
+      />
 
       <Container maxWidth="sm">
         <Game />

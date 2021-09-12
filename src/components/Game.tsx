@@ -8,6 +8,7 @@ import Button from "@material-ui/core/Button";
 import Card from "components/Card";
 import { useGameStore } from "stores/gameStore";
 import clsx from "clsx";
+import TextField from "@material-ui/core/TextField";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -34,6 +35,9 @@ const useStyles = makeStyles((theme: Theme) =>
       justifyContent: "center",
       marginTop: theme.spacing(2),
       marginBottom: theme.spacing(2),
+    },
+    betBox: {
+      textAlign: "center",
     },
   })
 );
@@ -169,6 +173,35 @@ const Game: FC = () => {
           </Button>
         </div>
 
+        <div>
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={() => {
+              game.changeBet(-10);
+            }}
+            disabled={game.bet <= 10}
+          >
+            -
+          </Button>
+          <TextField
+            type="number"
+            aria-readonly="true"
+            className={classes.betBox}
+            value={game.bet}
+            variant="outlined"
+          />
+          <Button
+            color="primary"
+            variant="contained"
+            onClick={() => {
+              game.changeBet(10);
+            }}
+          >
+            +
+          </Button>
+        </div>
+
         <div className={classes.buttonContainer}>
           <Button
             size="large"
@@ -176,7 +209,11 @@ const Game: FC = () => {
             color="primary"
             variant="contained"
             onClick={() => {
-              game.newGame();
+              if (game.bet > game.balance) {
+                alert("You do not have enough money!");
+              } else {
+                game.newGame();
+              }
             }}
             disabled={game.isThinking}
           >
@@ -184,7 +221,7 @@ const Game: FC = () => {
           </Button>
         </div>
 
-        <div className={classes.buttonContainer}>
+        <div>
           <Button
             size="small"
             fullWidth

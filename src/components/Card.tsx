@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme: Theme) =>
       fontSize: "24px",
     },
     hidden: {
-      backgroundImage: "url('images/card-back.png')",
+      backgroundImage: "url('/blackjack/images/card-back.png')",
       border: "4px solid white",
       boxSizing: "border-box",
     },

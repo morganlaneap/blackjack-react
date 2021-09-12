@@ -6,8 +6,6 @@ const cardData: ICard[] = require("staticData/cards.json");
 
 const synth = window.speechSynthesis;
 
-const bet = 10;
-
 const { persist, purge } = configurePersist({
   storage: localStorage,
   rootKey: "root",
@@ -16,6 +14,7 @@ const { persist, purge } = configurePersist({
 interface IGameStore {
   reset: () => void;
   newGame: () => void;
+  bet: number;
   isThinking: boolean;
   isOver: boolean;
   gameResult: string;
@@ -25,6 +24,7 @@ interface IGameStore {
   balance: number;
   hitPlayer: () => void;
   playerStand: () => void;
+  changeBet: (by: number) => void;
 }
 
 const shuffle = (array: ICard[]) => {
@@ -66,6 +66,10 @@ export const useGameStore = create<IGameStore>(
     },
     (set, get) => ({
       deck: cardData,
+      bet: 10,
+      changeBet: (by: number) => {
+        set({ bet: get().bet + by });
+      },
       isThinking: false,
       isOver: false,
       gameResult: "",
@@ -100,6 +104,7 @@ export const useGameStore = create<IGameStore>(
 
         // Reveal dealers card
         delay(() => {
+          const bet = get().bet;
           const deck = [...get().deck];
           const nextCard = deck.pop();
 
@@ -146,6 +151,7 @@ export const useGameStore = create<IGameStore>(
       },
       newGame: () => {
         let gameResult = "";
+        const bet = get().bet;
         let balance = get().balance;
 
         // Shuffle deck
@@ -193,6 +199,7 @@ export const useGameStore = create<IGameStore>(
         purge();
         set({
           deck: cardData,
+          bet: 10,
           isThinking: false,
           isOver: false,
           gameResult: "",
